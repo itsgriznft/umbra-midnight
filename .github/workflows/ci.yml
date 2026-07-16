@@ -1,0 +1,44 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  quality:
+    name: Typecheck & unit tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm install
+      - run: npm run typecheck
+      - run: npm test
+
+  contract:
+    name: Compile Compact contract
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Compact developer tools
+        run: |
+          curl --proto '=https' --tlsv1.2 -LsSf \
+            https://github.com/midnightntwrk/compact/releases/latest/download/compact-installer.sh | sh
+          # Expose the installed `compact` CLI to subsequent steps.
+          echo "$HOME/.compact/bin" >> "$GITHUB_PATH"
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+          echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
+      - name: Install toolchain (compiler 0.31.0)
+        run: compact update 0.31.0
+      - name: Compile contract to ZK circuits
+        run: compact compile contracts/umbra.compact contracts/managed/umbra
+      - name: Upload compiled artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: umbra-managed
+          path: contracts/managed/
+          if-no-files-found: warn

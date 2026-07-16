@@ -1,0 +1,28 @@
+{
+  "name": "umbra-midnight",
+  "version": "0.1.0",
+  "description": "Umbra — anonymous, verifiable polls on Midnight. Level 1 (New Moon): first Compact contract.",
+  "type": "module",
+  "license": "MIT",
+  "author": "Livingdeath <Livingdeath.shaman@gmail.com>",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/itsgriznft/umbra-midnight.git"
+  },
+  "keywords": [
+    "midnight",
+    "compact",
+    "zero-knowledge",
+    "privacy",
+    "voting",
+    "dapp"
+  ],
+  "scripts": {
+    "compact:build": "compact compile contracts/umbra.compact contracts/managed/umbra",
+    "typecheck": "tsc --noEmit",
+    "test": "node --test"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.3"
+  }
+}
