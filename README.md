@@ -76,17 +76,34 @@ funded [Lace](https://www.lace.io) wallet is wired up in **Level 2** (see the
 ```
 contracts/umbra.compact   # the Compact smart contract (Level 1 deliverable)
 src/witnesses.ts          # witness wiring — supplies the private secret key
+src/contract.ts           # binds the compiled contract to its witnesses (for the UI)
 src/types.ts              # off-chain private-state + poll/result types
 test/logic.test.mjs       # node:test reference model of the contract rules
-.github/workflows/ci.yml  # CI: typecheck + tests, and compile the contract
+ui/                       # React + Vite frontend (Level 2) — see ui/README.md
+.github/workflows/ci.yml  # CI: typecheck + tests, compile the contract, build the UI
 IDEA.md                   # the product idea (Level 1 "seed the idea")
 ROADMAP.md                # how Umbra grows across the six lunar levels
 ```
 
+## Frontend (Level 2)
+
+A React + Vite app in [`ui/`](ui/) drives the poll through a single
+`UmbraController` interface. It ships with a **mock controller** (runs in the
+browser with no wallet — full demo of connect → deploy → vote) and a **Lace
+controller** that deploys/votes on **Preprod**. Quick demo:
+
+```bash
+cd ui && npm install && npm run dev   # http://localhost:5173
+```
+
+See [ui/README.md](ui/README.md) to run it against a real Lace wallet on Preprod.
+
 ## Status
 
 - ✅ **Level 1 — New Moon:** first Compact contract + toolchain + tests + CI, idea seeded.
-- ⏳ Level 2 — Waxing Crescent: React UI + Lace wallet on Preprod.
+- 🌒 **Level 2 — Waxing Crescent:** React UI wired to the contract via `UmbraController`;
+  mock controller is fully working; Lace/Preprod controller is code-complete and enabled
+  with a local proof server + wallet (see [ui/README.md](ui/README.md)).
 
 See [ROADMAP.md](ROADMAP.md) for the full six-phase plan.
 

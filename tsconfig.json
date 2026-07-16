@@ -15,5 +15,6 @@
     "outDir": "dist"
   },
   "include": ["src"],
-  "exclude": ["node_modules", "dist", "contracts/managed"]
+  "comment": "src/contract.ts imports the compiler-generated contract (present only after compact:build), so it is excluded from the standalone typecheck.",
+  "exclude": ["node_modules", "dist", "contracts/managed", "src/contract.ts", "ui"]
 }
