@@ -33,6 +33,21 @@ if ! docker info >/dev/null 2>&1; then
 fi
 docker version --format 'Docker {{.Server.Version}} ready' || { echo "dockerd failed to start; see /var/log/dockerd.log"; tail -n 30 /var/log/dockerd.log || true; exit 1; }
 
+log "Enabling Docker autostart on WSL boot (no systemd in this distro)"
+cat > /usr/local/sbin/midnight-docker-up.sh <<'SH'
+#!/usr/bin/env bash
+# Start the Docker daemon (clearing any stale pidfile left by an abrupt WSL stop).
+# The proof-server container then comes back on its own via its restart policy.
+rm -f /var/run/docker.pid
+pgrep dockerd >/dev/null 2>&1 || nohup dockerd >/var/log/dockerd.log 2>&1 &
+SH
+chmod +x /usr/local/sbin/midnight-docker-up.sh
+cat > /etc/wsl.conf <<'CONF'
+[boot]
+systemd=false
+command = /usr/local/sbin/midnight-docker-up.sh
+CONF
+
 # NOTE: Docker's default bridge network corrupts the proof server's large TLS
 # parameter downloads under WSL2 (they come back empty — hash of "" — and fail).
 # Running on the host network uses WSL's own (working) networking and fixes it.

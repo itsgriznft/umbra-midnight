@@ -26,4 +26,9 @@ Write-Host "Importing as $distro (WSL2)..."
 wsl --import $distro $dst $tar --version 2
 
 Write-Host "Done. Distro '$distro' is ready (root user)."
-wsl -d $distro -u root -- sh -c "cat /etc/os-release | head -1"
+wsl -d $distro -u root -- head -1 /etc/os-release
+
+# Install a no-admin logon auto-start so the proof server comes back after a reboot.
+$startup = [Environment]::GetFolderPath('Startup')
+Copy-Item -Force (Join-Path $PSScriptRoot 'midnight-proof-server.cmd') (Join-Path $startup 'midnight-proof-server.cmd')
+Write-Host "Installed logon auto-start -> $startup\midnight-proof-server.cmd"

@@ -49,15 +49,22 @@ at **http://127.0.0.1:6300**.
 > If you have Docker Desktop instead, skip WSL and just run:
 > `docker compose -f infra/docker-compose.yml up -d`
 
-### Keeping it running
+### Keeping it running (auto-start)
 
-A minimal WSL distro has no systemd, so the daemon is started manually by the setup
-script. If WSL shuts the distro down (e.g. after a reboot), restart the daemon +
-container:
+The container uses `--restart unless-stopped`, so it comes back on its own **once the
+Docker daemon is running**. A minimal WSL distro has no systemd, so `wsl-import.ps1`
+installs a no-admin **logon auto-start** — a copy of `infra/midnight-proof-server.cmd`
+in your Windows Startup folder — that starts the daemon (and thus the container) each
+time you sign in.
+
+Start it manually any time (e.g. right after a reboot, before signing out/in):
 
 ```powershell
-wsl -d MidnightUbuntu -u root -- bash -c "pgrep dockerd >/dev/null || (nohup dockerd >/var/log/dockerd.log 2>&1 &); sleep 4; docker start midnight-proof-server"
+wsl -d MidnightUbuntu -u root /usr/local/sbin/midnight-docker-up.sh
 ```
+
+> Auto-start via `/etc/wsl.conf` `[boot] command` is also configured, but older WSL
+> builds ignore it — the Startup-folder shortcut is the reliable path there.
 
 ---
 
