@@ -98,6 +98,21 @@ cd ui && npm install && npm run dev   # http://localhost:5173
 
 See [ui/README.md](ui/README.md) to run it against a real Lace wallet on Preprod.
 
+## Local infrastructure (Preprod)
+
+Running on Preprod needs a local **Midnight proof server** (the indexer/node are
+public and supplied by the wallet). [`infra/`](infra/) automates it inside an
+isolated Ubuntu WSL2 distro + Docker:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File infra/wsl-import.ps1        # create the distro
+wsl -d MidnightUbuntu -u root -- bash /mnt/f/Milad/Midnight/umbra/infra/setup-proof-server.sh
+```
+
+Proof server → `http://127.0.0.1:6300`. Full guide (incl. Lace + faucet) in
+[infra/INFRA.md](infra/INFRA.md). With Docker Desktop instead:
+`docker compose -f infra/docker-compose.yml up -d`.
+
 ## Status
 
 - ✅ **Level 1 — New Moon:** first Compact contract + toolchain + tests + CI, idea seeded.

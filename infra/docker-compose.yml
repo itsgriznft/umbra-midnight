@@ -1,0 +1,19 @@
+# Midnight proof server for Umbra (Level 2, Preprod).
+# Convenience alternative to infra/setup-proof-server.sh for a Docker/WSL2 setup:
+#
+#   docker compose -f infra/docker-compose.yml up -d
+#
+# The proof server generates zero-knowledge proofs locally; only the resulting
+# proof (anonymous nullifier + chosen option) ever leaves your machine.
+#
+# NOTE: host networking is used on purpose. Under WSL2, Docker's default bridge
+# corrupts the proof server's large TLS parameter downloads (they return empty),
+# so it never starts. Host networking uses WSL's own working network. The server
+# binds 127.0.0.1:6300, which WSL2 forwards to Windows localhost.
+services:
+  proof-server:
+    image: midnightnetwork/proof-server
+    container_name: midnight-proof-server
+    restart: unless-stopped
+    network_mode: host
+    # Default command: `midnight-proof-server --port 6300`.
