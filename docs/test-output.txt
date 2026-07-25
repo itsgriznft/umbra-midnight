@@ -1,0 +1,57 @@
+
+> umbra-midnight@0.1.0 test
+> node --test
+
+▶ compiled umbra_polls circuits
+  ✔ the constructor publishes the allowlist depth (30.8535ms)
+  ✔ createPoll records a poll and its metadata (20.7735ms)
+  ✔ a duplicate poll id is rejected (18.5938ms)
+  ✔ option count is bounded to 2..8 (10.1667ms)
+  ✔ an open poll tallies a ballot without any path (28.4875ms)
+  ✔ the same key cannot vote twice in one poll (27.6237ms)
+  ✔ a key votes once in each poll (36.6872ms)
+  ✔ an out-of-range option is rejected (13.9209ms)
+  ✔ voting in an unknown poll is rejected (7.8027ms)
+  ✔ src/allowlist.mjs agrees with the contract on member leaves (0.7137ms)
+  ✔ a path built off-chain recomputes to the published root (250.4783ms)
+  ✔ a member votes in a gated poll with a real Merkle path (270.5122ms)
+  ✔ every member of the allowlist can vote (280.7965ms)
+  ✔ an outsider with no path is turned away (253.1328ms)
+  ✔ an outsider cannot replay a member's published leaf (282.7227ms)
+  ✔ a path from a different allowlist does not verify (490.7075ms)
+  ✔ the published root does not reveal the membership list (240.3482ms)
+  ✔ only the organiser secret closes a poll (16.995ms)
+  ✔ a closed poll accepts no more ballots (15.6906ms)
+  ✔ closing preserves the tally (24.7097ms)
+  ✔ the nullifier is stable per key and poll, and hides the key (0.4448ms)
+✔ compiled umbra_polls circuits (2328.9519ms)
+✔ a valid ballot updates the tally and total (0.7591ms)
+✔ the same secret key cannot vote twice (0.3003ms)
+✔ different keys can each vote for the same option (0.0934ms)
+✔ an out-of-range option is rejected (0.1009ms)
+✔ nullifier hides the key but is stable per key (0.2049ms)
+✔ polls are independent and enumerable (0.9486ms)
+✔ a duplicate poll id is rejected (0.2633ms)
+✔ option count must be between two and eight (0.0998ms)
+✔ an out-of-range option is rejected (0.1402ms)
+✔ a key votes once per poll but in every poll (0.4186ms)
+✔ tallies and totals track every ballot (0.1225ms)
+✔ a member proves eligibility with a Merkle path (2.5717ms)
+✔ every member of the tree can vote (1.3112ms)
+✔ an outsider with no path is turned away (2.03ms)
+✔ an outsider cannot replay a member's published leaf (1.2051ms)
+✔ a path from a different tree does not verify (2.8092ms)
+✔ an open poll needs no path at all (0.1097ms)
+✔ the allowlist root hides the membership list (1.1441ms)
+✔ only the organiser secret closes a poll (1.1209ms)
+✔ a closed poll accepts no more ballots (1.7406ms)
+✔ closing twice is rejected (1.0711ms)
+✔ voting in a poll that does not exist is rejected (0.0796ms)
+ℹ tests 43
+ℹ suites 1
+ℹ pass 43
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2445.0002

@@ -1,12 +1,74 @@
 # 🌓 Umbra — anonymous, verifiable polls on Midnight
 
+[![CI](https://github.com/itsgriznft/umbra-midnight/actions/workflows/ci.yml/badge.svg)](https://github.com/itsgriznft/umbra-midnight/actions/workflows/ci.yml)
+[![Demo](https://github.com/itsgriznft/umbra-midnight/actions/workflows/pages.yml/badge.svg)](https://itsgriznft.github.io/umbra-midnight/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-8b7bff.svg)](LICENSE)
+
 > _Start in the dark. Ship in the light._
 > Level 3 (First Quarter) submission for **New Moon to Full: Monthly Moonshots on Midnight**.
+
+**▶ Live demo: <https://itsgriznft.github.io/umbra-midnight/>** — the full
+connect → publish → vote → close flow, in the browser, no wallet required.
+
+## The idea, in a paragraph
+
+On transparent chains, on-chain governance publishes the complete voting history of every
+address, which invites coercion and vote-buying and makes people copy the whales instead of
+voting their own view. Moving the vote off-chain hides it but throws away verifiability — you
+then have to trust whoever counts. **Umbra** is a poll factory where the tally is public and
+auditable but the voter is not, and nobody can vote twice: a secret key that never leaves the
+device derives a nullifier that the circuit checks and records, and polls can be gated by a
+Merkle allowlist so a ballot proves the voter was eligible without revealing which member cast
+it. The reusable primitive underneath — a nullifier-gated anonymous action with private
+eligibility — is meant to outlive this one app.
 
 Umbra is a privacy-first voting dApp built on [Midnight](https://midnight.network) with the
 [Compact](https://docs.midnight.network) smart-contract language. It gives communities a poll
 where **the result is public and auditable, but how any individual voted is not** — and where
 **nobody can vote twice**, all enforced by zero-knowledge proofs.
+
+## Screenshots
+
+| | |
+| --- | --- |
+| ![Polls](docs/screenshots/02-polls.png) | ![A cast ballot](docs/screenshots/03-voted.png) |
+| Many polls in one contract — one gated by an allowlist, one open. The organiser card appears only for polls whose secret this device holds. | A ballot is in. The tally moved; nothing on screen or on chain links it to the voter. |
+
+| Mobile | Tests |
+| --- | --- |
+| <img src="docs/screenshots/04-mobile.png" width="260" alt="Mobile layout"> | ![npm test](docs/screenshots/05-tests.png) |
+
+Compiling both contracts to ZK circuits: ![compact compile](docs/screenshots/06-compile.png)
+
+## Privacy model — what an observer can and cannot learn
+
+This is the claim the whole project rests on, so it is worth stating precisely. Assume an
+observer who can read the entire ledger and every transaction.
+
+**They can learn:**
+
+- how many ballots each option received, and the total per poll — the tallies are plain
+  counters in public state, which is the point;
+- each poll's question, option count, whether it is gated, and its allowlist **root**;
+- that every counted ballot came from a distinct key that was eligible for that poll;
+- the set of spent nullifiers, and that a nullifier was added when a ballot was cast.
+
+**They cannot learn:**
+
+- which member cast which ballot — the ballot carries no identity, only an unlinkable tag;
+- whether a particular member voted at all: a nullifier is `hash(domain, pollId, secretKey)`,
+  and without the secret key it cannot be matched to a person;
+- the membership list of a gated poll from the chain alone — only the root is published;
+- the voter's position in the allowlist tree, because the Merkle path stays a private witness
+  and never enters the transcript;
+- anyone's secret key, which never leaves the device.
+
+**What is deliberately public:** the chosen option. It has to be, to move a public counter. So
+Umbra hides *who voted how*, not *how many chose what* — which is exactly the trade a public
+tally requires.
+
+**No trusted tallier.** Correctness is enforced by the circuit. There is no operator who could
+miscount, and no admin key that can rewrite a tally.
 
 ## The problem
 

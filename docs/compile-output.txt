@@ -1,0 +1,31 @@
+Compiling 3 circuits:
+--- artifacts ---
+contracts/managed/umbra_polls:
+compiler
+contract
+keys
+zkir
+
+contracts/managed/umbra_polls/compiler:
+contract-info.json
+
+contracts/managed/umbra_polls/contract:
+index.d.ts
+index.js
+index.js.map
+
+contracts/managed/umbra_polls/keys:
+closePoll.prover
+closePoll.verifier
+createPoll.prover
+createPoll.verifier
+vote.prover
+vote.verifier
+
+contracts/managed/umbra_polls/zkir:
+closePoll.bzkir
+closePoll.zkir
+createPoll.bzkir
+createPoll.zkir
+vote.bzkir
+vote.zkir
