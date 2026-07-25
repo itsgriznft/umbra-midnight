@@ -273,6 +273,26 @@ dust wallet is the slow part — expect this to run for hours, not minutes. `dep
 `applied/relevant` counters per sub-wallet so you can tell progress from a stall. (Completion
 compares `appliedIndex` against `highestRelevantWalletIndex`, *not* the chain tip.)
 
+### Current status: blocked upstream
+
+The faucet funding works — the wallet below holds **1,000,000,000 NIGHT** on Preprod
+(`mn_addr_preprod1hjhaql2xsgpdnckez80hlnseaj5k33jlalkw0tuphg394pt3yj5qwujsrm`, funded by tx
+`002eea9377b5f903c9c449d4efedbf2a33e3192399145819d9873655260f2fd366`). The shielded and
+unshielded wallets sync to completion. The **dust wallet does not**: partway through, the sync
+stream starts failing to decode ledger events and never advances again —
+
+```
+Wallet.Sync: Transformation process failure
+  └─ Failed to decode ledger event payload
+     actual: { id: 1329323, protocolVersion: 1000000, … }
+```
+
+`@midnight-ntwrk/wallet-sdk-shielded@3.0.1` is the newest published version, and
+`wallet-sdk@1.1.0` pins that same version, so this is not something a dependency bump fixes:
+Preprod is emitting events the released SDK cannot parse. Without a synced dust wallet there is
+no way to pay fees, so the headless deploy cannot produce a contract address until the SDK
+catches up with the chain. Everything up to that point is automated and reproducible.
+
 ## Status
 
 - ✅ **Level 1 — New Moon:** first Compact contract + toolchain + tests + CI, idea seeded.
