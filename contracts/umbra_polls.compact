@@ -1,0 +1,191 @@
+pragma language_version 0.23;
+import CompactStandardLibrary;
+
+// ────────────────────────────────────────────────────────────────────────────
+// Umbra Polls — a poll *factory* with private, allowlist-gated voting.
+//
+// Level 3 (First Quarter) generalisation of contracts/umbra.compact:
+//   • many polls live in one contract, each identified by a Bytes<32> id
+//   • each poll may be OPEN (anyone) or GATED by a Merkle allowlist
+//   • eligibility is proven in zero knowledge: the voter's membership path is
+//     a private witness, and only the recomputed root is compared on-chain, so
+//     the ballot never reveals *which* member cast it
+//   • one ballot per (secret key, poll) — the nullifier is domain-separated by
+//     poll id, so the same key may vote in every poll but only once in each
+//
+// Privacy model (unchanged from Level 1): the TALLY is public, the VOTER is not.
+// ────────────────────────────────────────────────────────────────────────────
+
+// Depth of the eligibility Merkle tree: up to 2^10 = 1024 members per poll.
+export ledger allowlistDepth: Uint<8>;
+
+export struct Poll {
+  question: Opaque<'string'>;
+  optionCount: Uint<8>;
+  // When false the poll is open to anyone and `allowRoot` is ignored.
+  gated: Boolean;
+  // Root of the organiser's member tree, published when the poll is created.
+  allowRoot: MerkleTreeDigest;
+  // hash of the organiser's secret — proves the right to close the poll
+  // without ever revealing who the organiser is.
+  closeAuth: Bytes<32>;
+  open: Boolean;
+}
+
+export ledger polls: Map<Bytes<32>, Poll>;
+export ledger pollIds: List<Bytes<32>>;
+export ledger pollCount: Counter;
+
+// Per-option tallies, keyed by tallyKey(pollId, option).
+export ledger tallies: Map<Bytes<32>, Uint<64>>;
+// Ballots cast per poll, keyed by poll id.
+export ledger totals: Map<Bytes<32>, Uint<64>>;
+
+// Spent voter tags. The tag is bound to a poll, so membership means
+// "this anonymous voter has already voted *in that poll*".
+export ledger nullifiers: Set<Bytes<32>>;
+
+constructor() {
+  allowlistDepth = 10;
+}
+
+// ── Witnesses ───────────────────────────────────────────────────────────────
+
+// The voter's local secret key — supplied off-chain, never disclosed.
+witness localSecretKey(): Bytes<32>;
+
+// The voter's membership path in the poll's allowlist. Stays private: only the
+// root derived from it is checked, so the leaf index (and therefore the
+// member's identity) never reaches the transaction.
+witness allowlistPath(): MerkleTreePath<10, Bytes<32>>;
+
+// The organiser's secret, used to authorise closing a poll.
+witness organiserSecret(): Bytes<32>;
+
+// ── Pure helpers ────────────────────────────────────────────────────────────
+
+export struct NullifierInput {
+  domain: Bytes<32>;
+  pollId: Bytes<32>;
+  secretKey: Bytes<32>;
+}
+
+export struct TallyKeyInput {
+  domain: Bytes<32>;
+  pollId: Bytes<32>;
+  option: Uint<8>;
+}
+
+// Anonymous, poll-scoped voter tag. Stable per (key, poll); leaks neither.
+export circuit voterNullifier(pollId: Bytes<32>, sk: Bytes<32>): Bytes<32> {
+  return persistentHash<NullifierInput>(NullifierInput {
+    domain: pad(32, "umbra:nullifier:v2"),
+    pollId: pollId,
+    secretKey: sk,
+  });
+}
+
+// The ledger key under which one option's tally is stored.
+export circuit tallyKey(pollId: Bytes<32>, option: Uint<8>): Bytes<32> {
+  return persistentHash<TallyKeyInput>(TallyKeyInput {
+    domain: pad(32, "umbra:tally:v2"),
+    pollId: pollId,
+    option: option,
+  });
+}
+
+// The leaf an eligible member occupies in the organiser's allowlist tree.
+export circuit memberLeaf(sk: Bytes<32>): Bytes<32> {
+  return persistentHash<Vector<2, Bytes<32>>>([pad(32, "umbra:member:v2"), sk]);
+}
+
+// ── Circuits ────────────────────────────────────────────────────────────────
+
+// Publish a new poll. `allowRoot` is the root of the organiser's member tree,
+// computed off-chain; it is meaningless (and unchecked) when `gated` is false.
+export circuit createPoll(
+  pollId: Bytes<32>,
+  question: Opaque<'string'>,
+  optionCount: Uint<8>,
+  gated: Boolean,
+  allowRoot: MerkleTreeDigest,
+  closeAuth: Bytes<32>,
+): [] {
+  const id = disclose(pollId);
+  assert(!polls.member(id), "Umbra: poll already exists");
+  assert(disclose(optionCount) >= 2, "Umbra: a poll needs at least two options");
+  assert(disclose(optionCount) <= 8, "Umbra: at most eight options per poll");
+
+  polls.insert(id, Poll {
+    question: disclose(question),
+    optionCount: disclose(optionCount),
+    gated: disclose(gated),
+    allowRoot: disclose(allowRoot),
+    closeAuth: disclose(closeAuth),
+    open: true,
+  });
+  pollIds.pushFront(id);
+  pollCount.increment(1);
+  totals.insert(id, 0);
+}
+
+// Cast exactly one anonymous ballot in `pollId`.
+export circuit vote(pollId: Bytes<32>, option: Uint<8>): [] {
+  const id = disclose(pollId);
+  assert(polls.member(id), "Umbra: no such poll");
+  const poll = polls.lookup(id);
+  assert(poll.open, "Umbra: poll is closed");
+
+  const choice = disclose(option);
+  assert(choice < poll.optionCount, "Umbra: option out of range");
+
+  // Eligibility. For a gated poll the voter proves, in zero knowledge, that
+  // their member leaf sits in the tree the organiser published. The path never
+  // leaves the circuit, so the ballot cannot be traced back to a member.
+  // The leaf must be the voter's OWN member leaf: member leaves are public
+  // (the organiser publishes the list to build the tree), so without this bind
+  // any outsider could replay a member's leaf and pass the check.
+  const sk = localSecretKey();
+  const path = allowlistPath();
+  const derivedRoot = merkleTreePathRoot<10, Bytes<32>>(path);
+  const ownLeaf = path.leaf == memberLeaf(sk);
+  const eligible = !poll.gated || (ownLeaf && derivedRoot == poll.allowRoot);
+  assert(disclose(eligible), "Umbra: not on this poll's allowlist");
+
+  // One ballot per key per poll, without revealing the key or the voter.
+  const tag = disclose(voterNullifier(id, sk));
+  assert(!nullifiers.member(tag), "Umbra: this voter has already voted");
+  nullifiers.insert(tag);
+
+  // The chosen option is public — it drives the tally. The voter is not.
+  const key = tallyKey(id, choice);
+  const previous = tallies.member(key) ? tallies.lookup(key) : 0;
+  const nextTally = previous + 1;
+  tallies.insert(key, nextTally as Uint<64>);
+  const nextTotal = totals.lookup(id) + 1;
+  totals.insert(id, nextTotal as Uint<64>);
+}
+
+// Close a poll to further ballots. Only whoever knows the organiser secret
+// behind `closeAuth` can do this, and proving it reveals nothing about them.
+export circuit closePoll(pollId: Bytes<32>): [] {
+  const id = disclose(pollId);
+  assert(polls.member(id), "Umbra: no such poll");
+  const poll = polls.lookup(id);
+  assert(poll.open, "Umbra: poll is already closed");
+
+  const proof = persistentHash<Vector<2, Bytes<32>>>([
+    pad(32, "umbra:organiser:v2"),
+    organiserSecret(),
+  ]);
+  assert(disclose(proof == poll.closeAuth), "Umbra: not the poll organiser");
+
+  polls.insert(id, Poll {
+    question: poll.question,
+    optionCount: poll.optionCount,
+    gated: poll.gated,
+    allowRoot: poll.allowRoot,
+    closeAuth: poll.closeAuth,
+    open: false,
+  });
+}
