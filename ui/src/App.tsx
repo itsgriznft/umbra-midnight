@@ -340,9 +340,18 @@ function NewPollForm({
             onChange={(e) => setAllowlist(e.target.value)}
             placeholder={myLeaf}
           />
+          <div className="optrow">
+            <button
+              className="btn tiny"
+              disabled={allowlist.includes(myLeaf)}
+              onClick={() => setAllowlist((a) => (a.trim() ? `${a.trim()}\n${myLeaf}` : myLeaf))}
+            >
+              {allowlist.includes(myLeaf) ? "✓ you are on the list" : "+ add me"}
+            </button>
+          </div>
           <span className="hint">
             Only the tree's <strong>root</strong> is published. Members prove they belong with a private path, so a
-            ballot never says which of them cast it. Paste your own leaf below to include yourself.
+            ballot never says which of them cast it.
           </span>
         </label>
       )}
@@ -354,6 +363,25 @@ function NewPollForm({
   );
 }
 
+/** A shortened value that copies itself in full when clicked. */
+function Copyable({ value, label }: { value: string; label: string }) {
+  const [copied, setCopied] = useState(false);
+  const copy = () => {
+    navigator.clipboard?.writeText(value).then(
+      () => {
+        setCopied(true);
+        setTimeout(() => setCopied(false), 1400);
+      },
+      () => {},
+    );
+  };
+  return (
+    <button className="addr copyable" onClick={copy} title={`${value}\n(click to copy)`} aria-label={`Copy ${label}`}>
+      {copied ? "✓ copied" : short(value)}
+    </button>
+  );
+}
+
 function Identity({ address, memberLeaf }: { address: string; memberLeaf: string }) {
   return (
     <section className="card subtle">
@@ -361,15 +389,11 @@ function Identity({ address, memberLeaf }: { address: string; memberLeaf: string
       <dl className="kv">
         <dt>Factory</dt>
         <dd>
-          <code className="addr" title={address}>
-            {short(address)}
-          </code>
+          <Copyable value={address} label="the factory address" />
         </dd>
         <dt>Member leaf</dt>
         <dd>
-          <code className="addr" title={memberLeaf}>
-            {short(memberLeaf)}
-          </code>
+          <Copyable value={memberLeaf} label="your member leaf" />
         </dd>
       </dl>
       <p className="hint">

@@ -79,7 +79,16 @@ body {
 }
 
 .pollhead { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
-.addr { color: var(--muted); font-size: 12px; background: var(--bg); padding: 4px 8px; border-radius: 6px; }
+.addr {
+  color: var(--muted); font-size: 12px; background: var(--bg);
+  padding: 4px 8px; border-radius: 6px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+button.copyable {
+  border: 1px solid var(--line); cursor: pointer;
+  transition: border-color .15s ease, color .15s ease;
+}
+button.copyable:hover { border-color: var(--accent); color: var(--text); }
 
 .options { list-style: none; margin: 18px 0 0; padding: 0; display: grid; gap: 10px; }
 .option {
