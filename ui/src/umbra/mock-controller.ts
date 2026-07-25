@@ -1,5 +1,8 @@
 /**
- * In-browser reference implementation of {@link UmbraController}.
+ * In-browser reference implementation of {@link UmbraController}, the Level 2
+ * single-poll seam. The app itself now drives the Level 3 poll factory via
+ * MockFactory; this and lace-controller.ts remain the wiring for the original
+ * one-poll-per-contract deployment (contracts/umbra.compact).
  *
  * It mirrors the on-chain rules of contracts/umbra.compact so the UI is fully
  * demoable without a wallet or proof server:
