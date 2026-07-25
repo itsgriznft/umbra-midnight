@@ -5,6 +5,9 @@ import react from "@vitejs/plugin-react";
 // Node polyfills the Midnight SDK expects (Buffer/process) — see src/globals.ts.
 export default defineConfig({
   plugins: [react()],
+  // GitHub Pages serves the demo from /umbra-midnight/, so assets need that
+  // prefix there; a local dev/preview build stays at the root.
+  base: process.env.PAGES_BASE ?? "/",
   server: { port: 5173 },
   build: { target: "es2022", outDir: "dist" },
 });
