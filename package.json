@@ -1,7 +1,7 @@
 {
   "name": "umbra-midnight",
   "version": "0.1.0",
-  "description": "Umbra — anonymous, verifiable polls on Midnight. Level 1 (New Moon): first Compact contract.",
+  "description": "Umbra — anonymous, verifiable polls on Midnight. A poll factory with Merkle-allowlist eligibility, enforced in zero knowledge.",
   "type": "module",
   "license": "MIT",
   "author": "Livingdeath <Livingdeath.shaman@gmail.com>",
@@ -18,11 +18,14 @@
     "dapp"
   ],
   "scripts": {
-    "compact:build": "compact compile contracts/umbra.compact contracts/managed/umbra",
+    "compact:build": "npm run compact:build:poll && npm run compact:build:polls",
+    "compact:build:poll": "compact compile contracts/umbra.compact contracts/managed/umbra",
+    "compact:build:polls": "compact compile contracts/umbra_polls.compact contracts/managed/umbra_polls",
     "typecheck": "tsc --noEmit",
     "test": "node --test"
   },
   "devDependencies": {
+    "@midnight-ntwrk/compact-runtime": "^0.16.0",
     "typescript": "^5.6.3"
   }
 }
