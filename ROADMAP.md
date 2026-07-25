@@ -6,8 +6,8 @@ Midnight**. Each phase builds on the last.
 | Phase | Milestone | Umbra deliverable |
 | --- | --- | --- |
 | 🌑 **L1 · New Moon** | Setup & first contract | ✅ Compact contract (anonymous nullifier-gated vote), toolchain, tests, CI, idea seeded — **this repo** |
-| 🌒 **L2 · Waxing Crescent** | Frontend integration | React UI wired to the contract; connect **Lace** wallet; cast a vote on **Preprod** |
-| 🌓 **L3 · First Quarter** | Production-grade dApp | Poll **factory** (many polls), Merkle allowlist eligibility, full test suite, CI/CD, tidy UX |
+| 🌒 **L2 · Waxing Crescent** | Frontend integration | ✅ React UI wired to the contract; connect **Lace** wallet; cast a vote on **Preprod** |
+| 🌓 **L3 · First Quarter** | Production-grade dApp | ✅ Poll **factory** (many polls), Merkle allowlist eligibility, circuit-level test suite, CI/CD, multi-poll UX |
 | 🌓 **The Turn** | Idea submission | Submit Umbra against a problem statement; commit to the direction |
 | 🌔 **L4 · Waxing Gibbous** | MVP goes live | MVP live on Preprod, docs, deploy pipeline, public product profile on **X** |
 | 🌕 **L5 · Full Moon** | Users & feedback | Living feedback loop + **50 Preprod users** running real polls |
