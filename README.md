@@ -10,6 +10,17 @@
 **▶ Live demo: <https://itsgriznft.github.io/umbra-midnight/>** — the full
 connect → publish → vote → close flow, in the browser, no wallet required.
 
+## Demo video
+
+**[▶ Watch the 68-second demo](docs/video/umbra-demo.mp4)** — plays in GitHub's viewer.
+No narration; what it shows is captioned below.
+
+Recorded against the live demo above. In order: connect, deploy the factory, then create a poll
+**restricted to an allowlist** — "+ add me" puts this device's member leaf in the tree, of which
+only the **root** is published. A ballot is cast (`1 ballot(s) cast` · `✓ your anonymous ballot
+is in`), and the poll shows the organiser-only **Close poll** control, which proves the
+organiser secret in zero knowledge rather than revealing who they are.
+
 ## The idea, in a paragraph
 
 On transparent chains, on-chain governance publishes the complete voting history of every

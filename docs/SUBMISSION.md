@@ -31,7 +31,7 @@ where it is.
 | README documenting the privacy claim | [Privacy model](../README.md#privacy-model--what-an-observer-can-and-cannot-learn) |
 | Minimum 8 meaningful commits | `git log` — 11+ |
 | **Deployed Preprod contract address** | ⚠️ **blocked upstream** — see [deploy status](../README.md#current-status-blocked-upstream) |
-| Demo video | ⚠️ not recorded |
+| Demo video | [docs/video/umbra-demo.mp4](video/umbra-demo.mp4) — 68s, recorded against the live demo |
 
 ## 🌓 Level 3 — First Quarter
 
@@ -47,7 +47,7 @@ where it is.
 | Minimum 10 meaningful commits | `git log` — 11+ |
 | Chosen problem from the provided list | **Private Voting**, using **Private Allowlist Access** for eligibility |
 | Product proposal submitted for approval | ⚠️ **needs one human click** — text below |
-| Demo video (1 min) | ⚠️ not recorded |
+| Demo video (1 min) | [docs/video/umbra-demo.mp4](video/umbra-demo.mp4) — 68s, full flow |
 
 ## 💭 Idea Submission — ready to paste
 
