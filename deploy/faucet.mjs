@@ -96,10 +96,24 @@ export async function requestTokens(address, { faucet = DEFAULT_FAUCET, cdpPort 
   try {
     await api.send("Page.enable");
     await api.send("Runtime.enable");
+    // Turnstile tokens are single-use: reusing one the tab solved earlier gets
+    // rejected as "timeout-or-duplicate". Force a real reload so the widget
+    // issues a fresh one, and wait until the field is actually empty first.
     await api.send("Page.navigate", { url: faucet });
+    await sleep(1500);
+    await api.send("Page.reload", { ignoreCache: true });
     for (let i = 0; i < 40; i++) {
       await sleep(500);
       if (await evaluate(api, "document.readyState === 'complete'").catch(() => false)) break;
+    }
+    for (let i = 0; i < 20; i++) {
+      const stale = await evaluate(
+        api,
+        `(() => { const el=document.querySelector('[name="cf-turnstile-response"]');
+                  return !!(el && el.value && el.value.length > 20); })()`,
+      ).catch(() => false);
+      if (!stale) break;
+      await sleep(500);
     }
 
     // Turnstile drops its token into a hidden input once solved. That is

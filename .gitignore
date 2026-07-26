@@ -25,3 +25,8 @@ wallet-*.json
 .DS_Store
 .idea/
 .vscode/
+
+# Deploy page: installed SDK + the compiled circuits it serves
+deploy-lace/node_modules/
+deploy-lace/public/managed/
+deploy-lace/dist/

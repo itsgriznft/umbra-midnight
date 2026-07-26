@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Umbra — deploy the poll factory to Preprod</title>
+    <style>
+      :root { color-scheme: dark; }
+      body {
+        margin: 0; padding: 32px 20px; background: #0a0b12; color: #e7e8f2;
+        font: 15px/1.6 ui-sans-serif, system-ui, "Segoe UI", Roboto, sans-serif;
+      }
+      main { max-width: 780px; margin: 0 auto; }
+      h1 { font-size: 22px; margin: 0 0 4px; }
+      p.lede { color: #9a9cb8; margin: 0 0 24px; }
+      button {
+        background: linear-gradient(180deg, #8b7bff, #6c5cff); color: #fff;
+        border: none; border-radius: 10px; padding: 12px 20px;
+        font-size: 15px; font-weight: 600; cursor: pointer;
+      }
+      button:disabled { opacity: .5; cursor: not-allowed; }
+      #log {
+        margin-top: 22px; background: #12131f; border: 1px solid #262842;
+        border-radius: 12px; padding: 16px; white-space: pre-wrap;
+        font: 12.5px/1.6 ui-monospace, SFMono-Regular, Menlo, monospace;
+        min-height: 220px; max-height: 60vh; overflow: auto;
+      }
+      .ok { color: #57d9a3; } .bad { color: #ff7a7a; } .dim { color: #9a9cb8; }
+      #out {
+        margin-top: 18px; padding: 14px; border-radius: 10px;
+        background: #14251f; border: 1px solid #1f5c46; color: #57d9a3;
+        word-break: break-all; display: none;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>🌓 Umbra — deploy the poll factory</h1>
+      <p class="lede">
+        Deploys <code>contracts/umbra_polls.compact</code> to Midnight <strong>Preprod</strong>
+        through the Lace wallet, using the local proof server on
+        <code>http://127.0.0.1:6300</code>.
+      </p>
+      <button id="go">Connect Lace &amp; deploy</button>
+      <div id="out"></div>
+      <div id="log" class="dim">Ready.</div>
+    </main>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
