@@ -12,8 +12,10 @@ connect → publish → vote → close flow, in the browser, no wallet required.
 
 ## Demo video
 
-**[▶ Watch the 68-second demo](docs/video/umbra-demo.mp4)** — plays in GitHub's viewer.
-No narration; what it shows is captioned below.
+![Umbra demo — connect, publish an allowlisted poll, vote, close](docs/video/umbra-demo.gif)
+
+*Above plays inline (2× speed, silent). **[Full-speed 68s MP4](docs/video/umbra-demo.mp4)** —
+GitHub serves it as a download rather than playing it, so the GIF is the one to watch here.*
 
 Recorded against the live demo above. In order: connect, deploy the factory, then create a poll
 **restricted to an allowlist** — "+ add me" puts this device's member leaf in the tree, of which
