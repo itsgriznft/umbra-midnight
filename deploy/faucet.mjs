@@ -1,14 +1,15 @@
-// Fund a Preprod address from the Midnight faucet, driving a real browser over
-// the Chrome DevTools Protocol.
+// Fund a Midnight testnet address from the faucet, driving a real browser over
+// the Chrome DevTools Protocol. Defaults to Preview; pass a Preprod faucet URL
+// as the second argument to target Preprod instead.
 //
-//   CDP_PORT=9333 node faucet.mjs <mn_addr_preprod1...>
+//   CDP_PORT=9333 node faucet.mjs <mn_addr_preview1...>
 //
 // Why not @midnight-ntwrk/testkit-js's FaucetClient? It POSTs to the faucet URL
 // *root* with a hardcoded dummy captcha header:
 //
 //     axios.post(faucetUrl, {recipientAddress, amount}, {headers: {'X-Captcha-Token': 'XXXX.DUMMY.TOKEN.XXXX'}})
 //
-// Against the public Preprod faucet that hits the single-page app, which
+// Against the public faucets that hits the single-page app, which
 // answers HTTP 200 with its HTML. The client logs "Faucet response: OK" and
 // nothing is ever requested — a silent no-op that looks like success. The real
 // API is:
@@ -20,7 +21,7 @@
 // faucet page in a CDP-controlled Chrome, let its Turnstile widget solve the
 // challenge the way it does for any visitor, and use the token it produces.
 // Chrome must already be running with --remote-debugging-port=<CDP_PORT>.
-export const DEFAULT_FAUCET = "https://midnight-tmnight-preprod.nethermind.dev";
+export const DEFAULT_FAUCET = "https://faucet.preview.midnight.network";
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const getJson = async (u) => (await fetch(u)).json();
@@ -132,35 +133,58 @@ export async function requestTokens(address, { faucet = DEFAULT_FAUCET, cdpPort 
     }
     if (!token) throw new Error("no Turnstile token after 120s (solve the captcha in the Chrome window and retry)");
 
+    // The two testnets run different faucet services:
+    //   preprod  POST /api/request-tokens {address, captchaToken} -> id
+    //            GET  /api/request-status/:id -> {status: success|failure}
+    //   preview  POST /api/drips {recipientAddress, amount}, captcha in the
+    //            X-Captcha-Token header                          -> {dripId}
+    //            GET  /api/drips/:id -> {status: PENDING|CONFIRMED|FAILED}
+    const isPreview = /faucet\.preview\./.test(faucet);
+
     // Issued from inside the page: same origin, so no CORS to negotiate.
     const posted = await evaluate(
       api,
-      `(async () => {
-         const res = await fetch(${JSON.stringify(faucet)} + '/api/request-tokens', {
-           method: 'POST', headers: {'Content-Type': 'application/json'},
-           body: JSON.stringify({address: ${JSON.stringify(address)}, captchaToken: ${JSON.stringify(token)}})
-         });
-         return { status: res.status, body: await res.text() };
-       })()`,
+      isPreview
+        ? `(async () => {
+             const res = await fetch(${JSON.stringify(faucet)} + '/api/drips', {
+               method: 'POST',
+               headers: {'Content-Type': 'application/json', 'X-Captcha-Token': ${JSON.stringify(token)}},
+               body: JSON.stringify({recipientAddress: ${JSON.stringify(address)}, amount: '1000000000'})
+             });
+             return { status: res.status, body: await res.text() };
+           })()`
+        : `(async () => {
+             const res = await fetch(${JSON.stringify(faucet)} + '/api/request-tokens', {
+               method: 'POST', headers: {'Content-Type': 'application/json'},
+               body: JSON.stringify({address: ${JSON.stringify(address)}, captchaToken: ${JSON.stringify(token)}})
+             });
+             return { status: res.status, body: await res.text() };
+           })()`,
     );
     if (posted.status < 200 || posted.status >= 300) {
       throw new Error(`faucet rejected the request (HTTP ${posted.status}): ${posted.body.slice(0, 300)}`);
     }
 
-    const requestId = JSON.parse(posted.body);
+    const parsed = JSON.parse(posted.body);
+    const requestId = isPreview ? (parsed.dripId ?? parsed.id ?? parsed) : parsed;
     log(`Faucet accepted the request (${requestId}). Waiting for it to settle...`);
 
     for (let i = 0; i < 60; i++) {
       await sleep(5000);
-      const res = await fetch(`${faucet}/api/request-status/${requestId}`, {
-        headers: { "Content-Type": "application/json" },
-      });
+      const statusUrl = isPreview
+        ? `${faucet}/api/drips/${requestId}`
+        : `${faucet}/api/request-status/${requestId}`;
+      const res = await fetch(statusUrl, { headers: { "Content-Type": "application/json" } });
       const status = await res.json();
-      if (status.status === "success") {
-        log(`Faucet paid out. tx=${status.value.transactionIdentifier}`);
-        return status.value;
+      const state = String(status.status ?? "").toLowerCase();
+      if (state === "success" || state === "confirmed") {
+        const value = status.value ?? status;
+        log(`Faucet paid out. tx=${value.transactionIdentifier ?? value.txId ?? "(id not reported)"}`);
+        return value;
       }
-      if (status.status === "failure") throw new Error(`faucet failed: ${JSON.stringify(status.error)}`);
+      if (state === "failure" || state === "failed") {
+        throw new Error(`faucet failed: ${JSON.stringify(status.error ?? status)}`);
+      }
     }
     throw new Error("faucet request never settled");
   } finally {

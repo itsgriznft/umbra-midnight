@@ -38,15 +38,22 @@ globalThis.WebSocket = WebSocket;
 
 const logger = pino({ level: "info", base: undefined, timestamp: false });
 
-const NETWORK = "preprod";
+// Preview is the smaller, steadier testnet — roughly 286k blocks against
+// Preprod's ~1.97m, so a fresh wallet syncs in a fraction of the time.
+// Override with UMBRA_NETWORK=preprod.
+const NETWORK = process.env.UMBRA_NETWORK ?? "preview";
+const FAUCETS = {
+  preprod: "https://midnight-tmnight-preprod.nethermind.dev/",
+  preview: "https://faucet.preview.midnight.network/",
+};
 const env = {
   walletNetworkId: NETWORK,
   networkId: NETWORK,
-  indexer: "https://indexer.preprod.midnight.network/api/v4/graphql",
-  indexerWS: "wss://indexer.preprod.midnight.network/api/v4/graphql/ws",
-  node: "https://rpc.preprod.midnight.network",
-  nodeWS: "wss://rpc.preprod.midnight.network",
-  faucet: "https://midnight-tmnight-preprod.nethermind.dev/",
+  indexer: `https://indexer.${NETWORK}.midnight.network/api/v4/graphql`,
+  indexerWS: `wss://indexer.${NETWORK}.midnight.network/api/v4/graphql/ws`,
+  node: `https://rpc.${NETWORK}.midnight.network`,
+  nodeWS: `wss://rpc.${NETWORK}.midnight.network`,
+  faucet: FAUCETS[NETWORK] ?? FAUCETS.preview,
   proofServer: "http://127.0.0.1:6300",
 };
 

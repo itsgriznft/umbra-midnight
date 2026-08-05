@@ -1,4 +1,4 @@
-// Deploy the Umbra poll factory to Midnight Preprod through the Lace wallet.
+// Deploy the Umbra poll factory to a Midnight testnet through the Lace wallet.
 //
 // Deliberately small: the point is to get a verifiable contract address, not to
 // run the app on-chain. The wallet does the balancing and signing, the local
@@ -26,6 +26,10 @@ import * as UmbraPolls from "../public/managed/umbra_polls/contract/index.js";
 const CONNECTOR_API_VERSION = "4.x";
 const PRIVATE_STATE_ID = "umbraPollsPrivateState";
 const ZK_BASE = "/managed/umbra_polls";
+// Preview rather than Preprod: Preprod is the larger, less settled testnet
+// (~1.97m blocks against Preview's ~286k) and deploys through it stall.
+// Override in the URL with ?network=preprod.
+const NETWORK = new URLSearchParams(location.search).get("network") ?? "preview";
 
 const logEl = document.getElementById("log");
 const outEl = document.getElementById("out");
@@ -93,14 +97,14 @@ async function main() {
   log(`Found wallet: ${lace.name ?? "Lace"} (connector API ${lace.apiVersion})`);
 
   // Lace accepts: mainnet | preprod | preview | qanet | undeployed.
-  log("Requesting connection — approve it in the Lace popup…");
-  const connected = await lace.connect("preprod");
+  log(`Requesting connection on ${NETWORK} — approve it in the Lace popup…`);
+  const connected = await lace.connect(NETWORK);
   const config = await connected.getConfiguration();
   const shielded = await connected.getShieldedAddresses();
   log("Connected.", "ok");
   log(`  indexer:      ${config.indexerUri}`);
   log(`  proof server: ${config.proverServerUri}`);
-  setNetworkId("preprod");
+  setNetworkId(NETWORK);
 
   const zk = new FetchZkConfigProvider(window.location.origin + ZK_BASE, fetch.bind(window));
   const providers = {
@@ -145,7 +149,7 @@ async function main() {
   const address = deployed.deployTxData.public.contractAddress;
   log("Deployed.", "ok");
   outEl.style.display = "block";
-  outEl.innerHTML = `<strong>Contract address (Preprod)</strong><br>${address}`;
+  outEl.innerHTML = `<strong>Contract address (${NETWORK})</strong><br>${address}`;
   log(`CONTRACT_ADDRESS=${address}`, "ok");
   goEl.disabled = false;
 }
