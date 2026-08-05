@@ -60,7 +60,45 @@ const witnesses = {
 };
 
 const isComplete = (p) => !!p && typeof p.isStrictlyComplete === "function" && p.isStrictlyComplete();
-const isSynced = (s) => isComplete(s.shielded.state.progress) && isComplete(s.dust.state.progress) && isComplete(s.unshielded.progress);
+
+// Dump every field the SDK exposes on a progress object — the names differ
+// between the shielded/dust/unshielded wallets and change between releases, so
+// guessing which one means "done" is how you end up waiting on the wrong number.
+const describe = (p) => {
+  if (!p) return "null";
+  const own = {};
+  for (const k of Object.keys(p)) {
+    const v = p[k];
+    if (typeof v !== "function" && typeof v !== "object") own[k] = typeof v === "bigint" ? v.toString() : v;
+  }
+  for (const m of ["isStrictlyComplete", "isComplete", "isSynced"]) {
+    if (typeof p[m] === "function") { try { own[m + "()"] = p[m](); } catch { own[m + "()"] = "threw"; } }
+  }
+  return JSON.stringify(own);
+};
+
+// The dust wallet can report a target of the whole chain while only ever
+// applying the handful of events that concern it, so it never satisfies
+// isStrictlyComplete(). UMBRA_RELAX_DUST treats it as done once the other two
+// wallets are complete and dust has stopped moving.
+const RELAX_DUST = !!process.env.UMBRA_RELAX_DUST;
+let dumped = false;
+let dustLast = -1;
+let dustStill = 0;
+const dustSettled = (p) => {
+  const applied = Number(p?.appliedIndex ?? -1);
+  if (applied === dustLast) dustStill += 1;
+  else { dustLast = applied; dustStill = 0; }
+  return dustStill >= 6;
+};
+
+const isSynced = (s) => {
+  const others = isComplete(s.shielded.state.progress) && isComplete(s.unshielded.progress);
+  const dustP = s.dust.state.progress;
+  if (isComplete(dustP)) return others;
+  if (RELAX_DUST && others && dustSettled(dustP)) return true;
+  return false;
+};
 
 // A wallet counts as synced once it has APPLIED everything relevant to itself
 // (highestRelevantWalletIndex / highestTransactionId) and is still connected —
@@ -122,6 +160,13 @@ async function fundAndWait(wallet) {
     wallet.state().pipe(
       Rx.throttleTime(3000),
       Rx.tap((s) => logger.info(`  synced=${isSynced(s)} night=${(s.unshielded.balances[token.raw] ?? 0n).toString()} ${syncLine(s)}`)),
+      Rx.tap((s) => {
+        if (dumped) return;
+        dumped = true;
+        logger.info(`  dust.progress   = ${describe(s.dust.state.progress)}`);
+        logger.info(`  shielded.progress = ${describe(s.shielded.state.progress)}`);
+        logger.info(`  unshielded.progress = ${describe(s.unshielded.progress)}`);
+      }),
       Rx.filter((s) => isSynced(s) && (s.unshielded.balances[token.raw] ?? 0n) > 0n),
       Rx.map((s) => s.unshielded),
     ),

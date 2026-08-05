@@ -9,7 +9,9 @@ import topLevelAwait from "vite-plugin-top-level-await";
 export default defineConfig({
   plugins: [wasm(), topLevelAwait()],
   define: {
-    "process.env": {},
+    // NB: process.env is deliberately NOT defined here. `define` does not reach
+    // inside pre-bundled dependencies, so the shim in src/env-shim.js sets it on
+    // the real global instead — and a define here would shadow that.
     global: "globalThis",
   },
   resolve: {
@@ -26,7 +28,7 @@ export default defineConfig({
     // Excluding the packages above also skips their CommonJS dependencies, which
     // then reach the browser un-converted ("does not provide an export named
     // 'default'"). Naming them here makes Vite pre-bundle them into ESM.
-    include: ["buffer", "semver", "object-inspect", "side-channel", "get-intrinsic"],
+    include: ["buffer", "semver", "object-inspect"],
   },
   server: { port: 5180 },
   build: { target: "esnext" },

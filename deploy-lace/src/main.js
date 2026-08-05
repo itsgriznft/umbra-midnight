@@ -4,6 +4,7 @@
 // run the app on-chain. The wallet does the balancing and signing, the local
 // proof server builds the ZK proof, and the compiled circuits are served from
 // /managed/umbra_polls so FetchZkConfigProvider can pull the proving keys.
+import "./env-shim.js"; // must come first — see the file for why
 import { Buffer } from "buffer";
 globalThis.Buffer ??= Buffer;
 globalThis.global ??= globalThis;
@@ -151,7 +152,19 @@ async function main() {
 
 goEl.addEventListener("click", () => {
   main().catch((e) => {
-    log(`Failed: ${e?.message ?? e}`, "bad");
+    // Effect surfaces failures as tagged objects with no `message`, which
+    // otherwise print as "[object Object]" and say nothing.
+    const detail =
+      e?.message ??
+      (() => {
+        try {
+          return JSON.stringify(e, Object.getOwnPropertyNames(e ?? {})).slice(0, 900);
+        } catch {
+          return String(e);
+        }
+      })();
+    log(`Failed: ${detail}`, "bad");
+    console.error("deploy failed:", e);
     if (e?.stack) log(String(e.stack).split("\n").slice(0, 6).join("\n"), "dim");
     goEl.disabled = false;
   });

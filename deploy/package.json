@@ -9,8 +9,8 @@
   },
   "dependencies": {
     "@midnight-ntwrk/midnight-js-contracts": "4.1.1",
-    "@midnight-ntwrk/midnight-js-indexer-public-data-provider": "4.1.1",
     "@midnight-ntwrk/midnight-js-http-client-proof-provider": "4.1.1",
+    "@midnight-ntwrk/midnight-js-indexer-public-data-provider": "4.1.1",
     "@midnight-ntwrk/midnight-js-level-private-state-provider": "4.1.1",
     "@midnight-ntwrk/midnight-js-network-id": "4.1.1",
     "@midnight-ntwrk/midnight-js-node-zk-config-provider": "4.1.1",
@@ -18,7 +18,8 @@
     "@midnight-ntwrk/midnight-js-types": "4.1.1",
     "@midnight-ntwrk/midnight-js-utils": "4.1.1",
     "@midnight-ntwrk/testkit-js": "4.1.1",
-    "@midnight-ntwrk/wallet-sdk": "1.0.0",
+    "@midnight-ntwrk/wallet-sdk": "^2.0.0-canary.20260730145109-1cf94a3",
+    "@midnight-ntwrk/wallet-sdk-shielded": "^4.0.0-canary.20260730145109-1cf94a3",
     "pino": "^10.3.1",
     "rxjs": "^7.8.2",
     "ws": "^8.21.0"

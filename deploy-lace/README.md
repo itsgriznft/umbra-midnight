@@ -37,6 +37,38 @@ Things that cost time and are not obvious:
   shutdown`. Anything that stalls the flow — a password prompt left open, or
   stealing window focus back from Lace's signing tab — triggers it.
 
+## Why not midnight-js 5.x
+
+`midnight-js@5.0.0-beta.6` is published and was tried end-to-end. It cannot run
+this contract, and the reason is structural rather than a configuration mistake:
+
+- `compact-runtime@0.16` re-exports **`onchain-runtime-v3`**;
+  `compact-runtime@0.18` (which 5.x depends on) re-exports **`onchain-runtime-v4`**.
+- The newest released Compact compiler, **0.31.1**, emits code that declares
+  `expects 0.16.0`, so it targets v3. Loading it against 5.x fails immediately
+  with `Version mismatch: compiled code expects 0.16.0, runtime is 0.18.0-rc.1`.
+- Pinning `compact-runtime` to `0.16.0` via npm `overrides` gets the contract to
+  load, but then `compact-js` — written against v4 — hands
+  `signatureVerifyingKey` a tagged `{tag, value}` key that v3's function does not
+  accept, and the deploy dies in `createMaintenanceAuthority`.
+
+So 5.x needs a contract compiled by a compiler that targets onchain-runtime v4,
+and no such compiler has shipped (`compact list` tops out at 0.31.1). This page
+therefore stays on `midnight-js@4.1.1`, which matches runtime 0.16/v3.
+
+Two 5.x quirks worth writing down for whenever the compiler does catch up:
+
+- `FetchZkConfigProvider`'s second argument became an options object
+  (`{ fetchFunc, verify }`) instead of the fetch function, and it verifies every
+  artifact against a compiler-emitted integrity manifest. Without one, pass
+  `{ verify: 'warn' }`.
+- `signingKey` has to be passed to `deployContract` explicitly. midnight-js only
+  writes `KEYS_SIGNING`/`KEYS_SIGNING_KIND` into the runtime config map when that
+  option is set, yet reads `keys.signingKind` as *required* — so omitting it
+  fails schema validation rather than letting the SDK sample its own key. Its own
+  fallback is broken too: it calls `sampleSigningKey('schnorr').value`, but that
+  function returns a plain string, so `.value` is `undefined`.
+
 ## Where it currently stops
 
 Connection, configuration and signing all succeed. After the transaction is
