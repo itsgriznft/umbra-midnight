@@ -100,3 +100,16 @@ Category to select: **Identity/credentials**. Period: **July Challenge**.
 > nullifier-gated anonymous action underneath Umbra is deliberately kept clean enough to be
 > reused for other products — anonymous attestations, private allowlists, anonymous feedback — so
 > the contract doubles as a privacy primitive for the ecosystem, not just one app.
+
+## 🌔 Level 4 — Waxing Gibbous
+
+| Requirement | Evidence |
+| --- | --- |
+| MVP live | <https://itsgriznft.github.io/umbra-midnight/> — the on-chain panel verifies both contracts live from the visitor's browser |
+| Contracts deployed with verifiable addresses | factory [`7733833db4dc875b…`](../README.md#deployed), single poll [`a14fc086c54c448c…`](../README.md#deployed), both on **Preview** |
+| Deploy pipeline | [deploy/deploy.mjs](../deploy/deploy.mjs) — funds a wallet, registers dust, deploys either contract; [deploy-lace/](../deploy-lace/) for the browser route |
+| Docs | [README](../README.md), [ROADMAP](../ROADMAP.md), [IDEA](../IDEA.md), [infra/INFRA.md](../infra/INFRA.md), [deploy-lace/README.md](../deploy-lace/README.md) |
+| Public product profile on X | ⚠️ **needs a human** — copy ready in [docs/LAUNCH.md](LAUNCH.md) |
+
+> The Level 4 submission form is not open yet — unlike Levels 1–3 it has no link on the tasks
+> page. This section is here so the evidence is ready the moment it opens.
