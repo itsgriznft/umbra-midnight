@@ -286,13 +286,30 @@ dust wallet is the slow part — expect this to run for hours, not minutes. `dep
 `applied/relevant` counters per sub-wallet so you can tell progress from a stall. (Completion
 compares `appliedIndex` against `highestRelevantWalletIndex`, *not* the chain tip.)
 
-### Current status: blocked upstream
+### Deployed
 
-The faucet funding works — the wallet below holds **1,000,000,000 NIGHT** on Preprod
-(`mn_addr_preprod1hjhaql2xsgpdnckez80hlnseaj5k33jlalkw0tuphg394pt3yj5qwujsrm`, funded by tx
-`002eea9377b5f903c9c449d4efedbf2a33e3192399145819d9873655260f2fd366`). The shielded and
-unshielded wallets sync to completion. The **dust wallet does not**: partway through, the sync
-stream starts failing to decode ledger events and never advances again —
+Umbra's poll factory is live on Midnight **Preview**:
+
+| | |
+| --- | --- |
+| **Contract address** | `a14fc086c54c448c87237dd1938f67c4065444de87ab5d2a22c28d1e96be6907` |
+| **Network** | Preview |
+| **Deploy tx** | `718d186623dd2c70e9e887a196752cfca35412ea7acf842f0ed7ccb58ca9470c` |
+| **Block** | 467392 |
+
+Verify it yourself against the public indexer — no local setup required:
+
+```bash
+curl -s -X POST https://indexer.preview.midnight.network/api/v4/graphql   -H 'Content-Type: application/json'   -d '{"query":"{ contractAction(address: \"a14fc086c54c448c87237dd1938f67c4065444de87ab5d2a22c28d1e96be6907\") { __typename transaction { hash block { height } } } }"}'
+```
+
+which returns `"__typename": "ContractDeploy"` and the transaction above.
+
+#### Why this is on Preview, not Preprod
+
+The first attempts targeted Preprod and could never finish. The wallet's shielded and unshielded
+components synced, but the **dust** wallet did not: partway through, the sync stream started
+failing to decode ledger events and never advanced —
 
 ```
 Wallet.Sync: Transformation process failure
@@ -300,11 +317,12 @@ Wallet.Sync: Transformation process failure
      actual: { id: 1329323, protocolVersion: 1000000, … }
 ```
 
-`@midnight-ntwrk/wallet-sdk-shielded@3.0.1` is the newest published version, and
-`wallet-sdk@1.1.0` pins that same version, so this is not something a dependency bump fixes:
-Preprod is emitting events the released SDK cannot parse. Without a synced dust wallet there is
-no way to pay fees, so the headless deploy cannot produce a contract address until the SDK
-catches up with the chain. Everything up to that point is automated and reproducible.
+`wallet-sdk-shielded@4.0.0-canary` fixes that decode error, but on Preprod the dust wallet then
+faced ~1.37M events at roughly 43/s — about 8.5 hours of syncing for one deploy. Preview is a
+much shorter chain, and the same wallet syncs it in minutes. Without a synced dust wallet there
+is no way to pay fees, which is why the deploy is scripted against Preview by default.
+
+`deploy/deploy.mjs` still takes `UMBRA_NETWORK=preprod` if you want to try it there.
 
 ## Status
 

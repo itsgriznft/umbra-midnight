@@ -18,7 +18,7 @@ where it is.
 | README explains public state vs private witness | [Privacy model](../README.md#privacy-model--what-an-observer-can-and-cannot-learn) |
 | Initial product idea paragraph | [The idea, in a paragraph](../README.md#the-idea-in-a-paragraph) |
 | Minimum 5 meaningful commits | `git log` — 11+ |
-| **Contract deployed with a visible address** | ⚠️ **blocked upstream** — see [deploy status](../README.md#current-status-blocked-upstream) |
+| **Contract deployed with a visible address** | ✅ [`a14fc086c54c448c…`](../README.md#deployed) on **Preview** — verifiable via the public indexer |
 
 ## 🌒 Level 2 — Waxing Crescent
 
@@ -30,7 +30,7 @@ where it is.
 | Live demo link | <https://itsgriznft.github.io/umbra-midnight/> |
 | README documenting the privacy claim | [Privacy model](../README.md#privacy-model--what-an-observer-can-and-cannot-learn) |
 | Minimum 8 meaningful commits | `git log` — 11+ |
-| **Deployed Preprod contract address** | ⚠️ **blocked upstream** — see [deploy status](../README.md#current-status-blocked-upstream) |
+| **Deployed contract address** | ✅ [`a14fc086c54c448c…`](../README.md#deployed) on **Preview** — verifiable via the public indexer |
 | Demo video | [docs/video/umbra-demo.mp4](video/umbra-demo.mp4) — 68s, recorded against the live demo |
 
 ## 🌓 Level 3 — First Quarter
