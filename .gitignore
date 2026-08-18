@@ -30,3 +30,8 @@ wallet-*.json
 deploy-lace/node_modules/
 deploy-lace/public/managed/
 deploy-lace/dist/
+
+# Wallet / contract private-state stores written at deploy time.
+# Holds the contract maintenance authority signing key — never commit.
+deploy/midnight-level-db/
+**/midnight-level-db/
