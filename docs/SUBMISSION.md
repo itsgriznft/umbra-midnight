@@ -103,13 +103,38 @@ Category to select: **Identity/credentials**. Period: **July Challenge**.
 
 ## 🌔 Level 4 — Waxing Gibbous
 
+Level requirement, verbatim: *MVP live on Preprod, docs, CI/CD, public product (X) profile.*
+
 | Requirement | Evidence |
 | --- | --- |
-| MVP live | <https://itsgriznft.github.io/umbra-midnight/> — the on-chain panel verifies both contracts live from the visitor's browser |
-| Contracts deployed with verifiable addresses | factory [`7733833db4dc875b…`](../README.md#deployed), single poll [`a14fc086c54c448c…`](../README.md#deployed), both on **Preview** |
-| Deploy pipeline | [deploy/deploy.mjs](../deploy/deploy.mjs) — funds a wallet, registers dust, deploys either contract; [deploy-lace/](../deploy-lace/) for the browser route |
-| Docs | [README](../README.md), [ROADMAP](../ROADMAP.md), [IDEA](../IDEA.md), [infra/INFRA.md](../infra/INFRA.md), [deploy-lace/README.md](../deploy-lace/README.md) |
-| Public product profile on X | ⚠️ **needs a human** — copy ready in [docs/LAUNCH.md](LAUNCH.md) |
+| **MVP live** | <https://itsgriznft.github.io/umbra-midnight/> — publish a poll, gate it by allowlist, vote, close. The on-chain panel checks both deployed contracts live from the visitor's own browser. |
+| **on Preprod** | ⚠️ deployed to **Preview** instead — see below |
+| **Docs** | [README](../README.md) (privacy model, contracts, deploy, verification), [ROADMAP](../ROADMAP.md), [IDEA](../IDEA.md), [infra/INFRA.md](../infra/INFRA.md), [deploy-lace/README.md](../deploy-lace/README.md), [ui/README.md](../ui/README.md) |
+| **CI/CD** | [ci.yml](../.github/workflows/ci.yml) compiles both Compact contracts, typechecks and runs 43 tests; [pages.yml](../.github/workflows/pages.yml) publishes the demo on every push. Both green — badges in the README. |
+| **Public product (X) profile** | ⚠️ **needs a human** — profile text and launch thread written and ready in [docs/LAUNCH.md](LAUNCH.md) |
+
+### Why Preview and not Preprod
+
+This is the one place the submission departs from the letter of the requirement, so it is worth
+being direct about it.
+
+**Preprod could not be made to work.** A wallet must sync before it can pay a fee. On Preprod the
+shielded and unshielded wallets synced, but the dust wallet did not: the sync stream failed to
+decode ledger events (`protocolVersion: 1000000`) and stopped advancing. That was not a
+dependency we could bump — `wallet-sdk-shielded@3.0.1` was the newest published version at the
+time. `4.0.0-canary` later fixed the decode error, and then the dust wallet faced ~1.37M events
+at roughly 43/s: about **8.5 hours of syncing per deploy attempt**. Two independent routes were
+built — headless Node and browser-plus-Lace — and both stopped at this same wall.
+
+**Preview was the answer given by the program.** Asked about it in the program channel, the
+guidance was that *Preprod is unstable for now, use Preview instead*. Preview is a much shorter
+chain, the same wallet syncs it in minutes, and the deploy then runs end to end.
+
+**Nothing about the deliverable is weaker for it.** Preview is one of Midnight's public testnets,
+the contracts are live and independently verifiable through its public indexer, and the deploy
+script still takes `UMBRA_NETWORK=preprod` for whenever Preprod is usable again. The full
+diagnosis is in the README under [Deployed](../README.md#deployed) and in
+[deploy-lace/README.md](../deploy-lace/README.md).
 
 > The Level 4 submission form is not open yet — unlike Levels 1–3 it has no link on the tasks
 > page. This section is here so the evidence is ready the moment it opens.
