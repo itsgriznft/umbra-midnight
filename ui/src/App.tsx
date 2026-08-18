@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { MockFactory } from "./umbra/mock-factory";
+import { CONTRACTS, INDEXER, NETWORK, fetchContractStatus, short as shortHex, type ChainStatus } from "./umbra/onchain";
 import {
   MAX_OPTIONS,
   MIN_OPTIONS,
@@ -88,6 +89,8 @@ export default function App() {
           </div>
         </main>
       )}
+
+      <OnChain />
 
       <footer className="foot">
         <span>Level 3 · First Quarter 🌓</span>
@@ -252,6 +255,56 @@ function Poll({
           </span>
         </div>
       )}
+    </section>
+  );
+}
+
+
+/** Live proof, fetched in the visitor's browser, that the contracts are deployed. */
+function OnChain() {
+  const [statuses, setStatuses] = useState<Record<string, ChainStatus>>(
+    () => Object.fromEntries(CONTRACTS.map((c) => [c.key, { state: "loading" } as ChainStatus])),
+  );
+
+  useEffect(() => {
+    const ac = new AbortController();
+    CONTRACTS.forEach((c) => {
+      fetchContractStatus(c.address, ac.signal).then((s) =>
+        setStatuses((prev) => ({ ...prev, [c.key]: s })),
+      );
+    });
+    return () => ac.abort();
+  }, []);
+
+  return (
+    <section className="card subtle onchain">
+      <h3>On chain — Midnight {NETWORK}</h3>
+      <p className="hint">
+        The demo above runs in your browser so it needs no wallet. These contracts are real: the
+        rows below are fetched live from Midnight's public indexer right now, from your machine.
+      </p>
+      {CONTRACTS.map((c) => {
+        const s = statuses[c.key];
+        return (
+          <div className="chainrow" key={c.key}>
+            <div className="chainhead">
+              <strong>{c.label}</strong>
+              {s.state === "loading" && <span className="hint">checking…</span>}
+              {s.state === "ok" && <span className="ok">✓ {s.typename}</span>}
+              {s.state === "error" && <span className="bad">{s.message}</span>}
+            </div>
+            <code className="addr" title={c.address}>{shortHex(c.address, 14, 8)}</code>
+            {s.state === "ok" && (
+              <span className="hint">
+                tx <code>{shortHex(s.txHash, 10, 6)}</code> · block {s.block.toLocaleString()}
+              </span>
+            )}
+          </div>
+        );
+      })}
+      <p className="hint">
+        Verify independently against <code>{INDEXER}</code> — the same query this page just ran.
+      </p>
     </section>
   );
 }

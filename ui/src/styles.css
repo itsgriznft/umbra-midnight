@@ -199,3 +199,12 @@ hr { border: none; border-top: 1px solid var(--line); margin: 22px 0; }
   .polllist { position: static; }
 }
 @media (max-width: 520px) { .opts { grid-template-columns: 1fr; } }
+
+/* On-chain proof panel */
+.onchain { margin-top: 18px; }
+.chainrow {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 10px;
+  padding: 10px 0; border-top: 1px solid var(--line);
+}
+.chainhead { display: flex; align-items: center; gap: 8px; min-width: 190px; }
+.chainrow .addr { font-size: 11.5px; }
