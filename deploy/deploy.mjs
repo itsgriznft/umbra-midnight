@@ -31,7 +31,11 @@ import { UnshieldedAddress } from "@midnight-ntwrk/wallet-sdk-address-format";
 import { HDWallet, Roles } from "@midnight-ntwrk/wallet-sdk-hd";
 import { createKeystore } from "@midnight-ntwrk/wallet-sdk-unshielded-wallet";
 
-import * as Umbra from "./managed/umbra/contract/index.js";
+// Which contract to deploy. `polls` is the Level 3 factory (many polls, Merkle
+// allowlists); `umbra` is the Level 1 single fixed poll.
+const CONTRACT = process.env.UMBRA_CONTRACT === "umbra" ? "umbra" : "polls";
+const CONTRACT_DIR = CONTRACT === "umbra" ? "umbra" : "umbra_polls";
+const Umbra = await import(`./managed/${CONTRACT_DIR}/contract/index.js`);
 
 // @ts-ignore - enable WebSocket for the indexer subscription
 globalThis.WebSocket = WebSocket;
@@ -57,13 +61,22 @@ const env = {
   proofServer: "http://127.0.0.1:6300",
 };
 
-const ZK_CONFIG_PATH = path.join(import.meta.dirname, "managed", "umbra");
+const ZK_CONFIG_PATH = path.join(import.meta.dirname, "managed", CONTRACT_DIR);
 const PRIVATE_STATE_ID = "umbraPrivateState";
 const POLL_QUESTION = "Which lunar phase should Umbra ship on?";
 const NUM_OPTIONS = 4n;
 
+// The factory reads two more witnesses than the Level 1 contract: a Merkle path
+// when a ballot is cast against a gated poll, and the organiser secret when a
+// poll is closed. Neither is touched by the constructor.
 const witnesses = {
   localSecretKey: ({ privateState }) => [privateState, privateState.secretKey],
+  ...(CONTRACT === "umbra"
+    ? {}
+    : {
+        allowlistPath: ({ privateState }) => [privateState, privateState.allowlistPath],
+        organiserSecret: ({ privateState }) => [privateState, privateState.organiserSecret],
+      }),
 };
 
 const isComplete = (p) => !!p && typeof p.isStrictlyComplete === "function" && p.isStrictlyComplete();
@@ -246,18 +259,31 @@ async function main() {
     CompiledContract.withCompiledFileAssets(ZK_CONFIG_PATH),
   );
 
-  logger.info("Deploying contract (this builds a ZK proof via the proof server)...");
+  logger.info(`Deploying ${CONTRACT === "umbra" ? "the Level 1 poll" : "the poll factory"} (this builds a ZK proof via the proof server)...`);
   const deployed = await deployContract(providers, {
     compiledContract: compiled,
     privateStateId: PRIVATE_STATE_ID,
-    initialPrivateState: { secretKey: new Uint8Array(randomBytes(32)) },
-    args: [POLL_QUESTION, NUM_OPTIONS],
+    initialPrivateState:
+      CONTRACT === "umbra"
+        ? { secretKey: new Uint8Array(randomBytes(32)) }
+        : {
+            secretKey: new Uint8Array(randomBytes(32)),
+            // Never verified by the constructor — the factory only reads a path
+            // when a ballot is cast against a gated poll.
+            allowlistPath: {
+              leaf: new Uint8Array(32),
+              path: Array.from({ length: 10 }, () => ({ sibling: { field: 0n }, goes_left: true })),
+            },
+            organiserSecret: new Uint8Array(randomBytes(32)),
+          },
+    args: CONTRACT === "umbra" ? [POLL_QUESTION, NUM_OPTIONS] : [],
   });
 
   const address = deployed.deployTxData.public.contractAddress;
   logger.info("========================================");
   logger.info(`CONTRACT_ADDRESS=${address}`);
   logger.info(`NETWORK=${NETWORK}`);
+  logger.info(`CONTRACT=${CONTRACT_DIR}`);
   logger.info("========================================");
   console.log(`CONTRACT_ADDRESS=${address}`);
 

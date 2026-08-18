@@ -288,22 +288,32 @@ compares `appliedIndex` against `highestRelevantWalletIndex`, *not* the chain ti
 
 ### Deployed
 
-Umbra's poll factory is live on Midnight **Preview**:
+Both contracts are live on Midnight **Preview** and verifiable from the public indexer:
 
-| | |
-| --- | --- |
-| **Contract address** | `a14fc086c54c448c87237dd1938f67c4065444de87ab5d2a22c28d1e96be6907` |
-| **Network** | Preview |
-| **Deploy tx** | `718d186623dd2c70e9e887a196752cfca35412ea7acf842f0ed7ccb58ca9470c` |
-| **Block** | 467392 |
+| | Level 3 — poll factory | Level 1 — single poll |
+| --- | --- | --- |
+| **Source** | [`umbra_polls.compact`](contracts/umbra_polls.compact) | [`umbra.compact`](contracts/umbra.compact) |
+| **Address** | `7733833db4dc875b59ac36a29f25e73c35060a1135a9fa7b6b984a852fd12b7f` | `a14fc086c54c448c87237dd1938f67c4065444de87ab5d2a22c28d1e96be6907` |
+| **Deploy tx** | `fa592e10eadca8466d751263bea5f958bc470b27fb45bb823b86a6b2dcbca673` | `718d186623dd2c70e9e887a196752cfca35412ea7acf842f0ed7ccb58ca9470c` |
+| **Block** | 477369 | 467392 |
 
-Verify it yourself against the public indexer — no local setup required:
+Check either one yourself — no local setup, no wallet:
 
 ```bash
-curl -s -X POST https://indexer.preview.midnight.network/api/v4/graphql   -H 'Content-Type: application/json'   -d '{"query":"{ contractAction(address: \"a14fc086c54c448c87237dd1938f67c4065444de87ab5d2a22c28d1e96be6907\") { __typename transaction { hash block { height } } } }"}'
+curl -s -X POST https://indexer.preview.midnight.network/api/v4/graphql   -H 'Content-Type: application/json'   -d '{"query":"{ contractAction(address: \"7733833db4dc875b59ac36a29f25e73c35060a1135a9fa7b6b984a852fd12b7f\") { __typename transaction { hash block { height } } } }"}'
 ```
 
-which returns `"__typename": "ContractDeploy"` and the transaction above.
+It answers `"__typename": "ContractDeploy"` with the transaction above. The two are
+distinguishable in their published state: the factory's carries the `createPoll` circuit and no
+question, while the Level 1 contract's carries its one fixed question.
+
+Reproduce either with the script — it funds a fresh wallet, registers dust, and deploys:
+
+```bash
+cd deploy && npm install
+node deploy.mjs                        # the poll factory (default)
+UMBRA_CONTRACT=umbra node deploy.mjs   # the Level 1 single poll
+```
 
 #### Why this is on Preview, not Preprod
 

@@ -18,7 +18,7 @@ where it is.
 | README explains public state vs private witness | [Privacy model](../README.md#privacy-model--what-an-observer-can-and-cannot-learn) |
 | Initial product idea paragraph | [The idea, in a paragraph](../README.md#the-idea-in-a-paragraph) |
 | Minimum 5 meaningful commits | `git log` — 11+ |
-| **Contract deployed with a visible address** | ✅ [`a14fc086c54c448c…`](../README.md#deployed) on **Preview** — verifiable via the public indexer |
+| **Contract deployed with a visible address** | ✅ [`a14fc086c54c448c…`](../README.md#deployed) — the Level 1 contract, on **Preview** |
 
 ## 🌒 Level 2 — Waxing Crescent
 
@@ -30,7 +30,7 @@ where it is.
 | Live demo link | <https://itsgriznft.github.io/umbra-midnight/> |
 | README documenting the privacy claim | [Privacy model](../README.md#privacy-model--what-an-observer-can-and-cannot-learn) |
 | Minimum 8 meaningful commits | `git log` — 11+ |
-| **Deployed contract address** | ✅ [`a14fc086c54c448c…`](../README.md#deployed) on **Preview** — verifiable via the public indexer |
+| **Deployed contract address** | ✅ [`7733833db4dc875b…`](../README.md#deployed) — the poll factory, on **Preview** |
 | Demo video | [docs/video/umbra-demo.mp4](video/umbra-demo.mp4) — 68s, recorded against the live demo |
 
 ## 🌓 Level 3 — First Quarter
@@ -48,6 +48,7 @@ where it is.
 | Chosen problem from the provided list | **Private Voting**, using **Private Allowlist Access** for eligibility |
 | Product proposal submitted for approval | ⚠️ **needs one human click** — text below |
 | Demo video (1 min) | [docs/video/umbra-demo.mp4](video/umbra-demo.mp4) — 68s, full flow |
+| **Poll factory deployed on-chain** | ✅ [`7733833db4dc875b…`](../README.md#deployed) on **Preview**, tx `fa592e10…`, block 477369 |
 
 ## 💭 Idea Submission — ready to paste
 
